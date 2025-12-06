@@ -1,11 +1,18 @@
 import React, { useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useStore } from './store/useStore';
-import { MOODS } from './config/moods';
+import { useAudio } from './hooks/useAudio'; // Import Audio Hook
+import EntryView from './components/layout/EntryView';
+import FocusView from './components/layout/FocusView';
+import ParticleBackground from './components/ui/ParticleBackground'; // Import Particles
 
 function App() {
-  const { currentMood, setMood } = useStore();
+  const { currentMood, status } = useStore();
+  
+  // 1. Initialize Audio Engine
+  useAudio(); 
 
-  // THE MAGIC: Inject colors into CSS variables whenever mood changes
+  // Inject colors into CSS variables
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--color-primary', currentMood.colors.primary);
@@ -15,31 +22,24 @@ function App() {
   }, [currentMood]);
 
   return (
-    <div className="min-h-screen w-full bg-theme-bg text-theme-text transition-colors duration-1000 ease-in-out flex flex-col items-center justify-center">
+    <div className="relative min-h-screen w-full bg-theme-bg text-theme-text transition-colors duration-1000 ease-in-out flex flex-col items-center justify-center overflow-hidden">
       
-      {/* Temporary Debug UI */}
-      <h1 className="text-4xl font-bold mb-8 tracking-tighter">FOCUSSCAPE</h1>
-      
-      <div className="p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl text-center">
-        <p className="mb-4 text-theme-secondary uppercase tracking-widest text-xs font-bold">Current Mood</p>
-        <h2 className="text-3xl font-bold mb-8" style={{ color: 'var(--color-primary)' }}>{currentMood.label}</h2>
-        
-        <div className="flex gap-2 flex-wrap justify-center max-w-md">
-          {Object.values(MOODS).map((mood) => (
-            <button
-              key={mood.id}
-              onClick={() => setMood(mood.id)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 active:scale-95"
-              style={{ 
-                backgroundColor: currentMood.id === mood.id ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
-                color: currentMood.id === mood.id ? '#000' : 'inherit'
-              }}
-            >
-              {mood.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* 2. Add Particles Layer (Behind everything) */}
+      <ParticleBackground />
+
+      {/* Background Gradient */}
+      <div 
+        className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none transition-all duration-1000"
+        style={{ 
+            background: `radial-gradient(circle at 50% 50%, ${currentMood.colors.primary}20, transparent 80%)` 
+        }}
+      />
+
+      {/* Main Content */}
+      <AnimatePresence mode='wait'>
+        {status === 'entry' && <EntryView key="entry" />}
+        {status === 'focus' && <FocusView key="focus" />}
+      </AnimatePresence>
 
     </div>
   );

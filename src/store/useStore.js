@@ -3,8 +3,9 @@ import { create } from 'zustand';
 import { MOODS } from '../config/moods';
 
 export const useStore = create((set) => ({
-  currentMood: MOODS.chill, // Default mood
+  currentMood: MOODS.chill,
+  status: 'entry', // 'entry' | 'focus'
   
-  // Action to update mood
   setMood: (id) => set({ currentMood: MOODS[id] }),
+  setStatus: (status) => set({ status }),
 }));
